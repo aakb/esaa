@@ -1,0 +1,95 @@
+<?php
+//$Id: menutree.module,v 1.4.2.1 2008/05/04 23:25:40 crell Exp $
+
+/**
+ * @file
+ * This module provides a simple "site map" tree based on the menu system rather
+ * than on taxonomies.
+ * 
+ * @author Larry Garfield
+ *
+ */
+
+/**
+ * Implementation of hook_theme()
+ */
+function menutree_theme() { 
+  return array(
+    'menutree_page' => array('arguments' => array('output' => NULL)),
+    'menutree_tree' => array('arguments' => array('menu_name' => NULL)),
+  );
+}
+
+/**
+ * Implementation of hook_perm().
+ */
+function menutree_perm() {
+  return array('view site tree', 'administer menu tree');
+}
+
+/**
+ * Implementation of hook_menu().
+ */
+function menutree_menu() {
+  $items = array();
+  $items['menutree'] = array(
+    'title' => 'Sitemap',
+    'page callback' => 'menutree_display',
+    'page arguments' => array(menu_load('primary-links')),
+    'access arguments' => array('view site tree'),
+    'type' => MENU_CALLBACK,
+  );
+  $items['menutree/%menu'] = array(
+    'title' => 'Sitemap',
+    'page arguments' => array(1),
+    'type' => MENU_CALLBACK,
+    'access arguments' => array('view site tree'),
+  );
+  $items['admin/build/menutree'] = array(
+    'title' => 'Menu trees',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('menutree_settings'),
+    'description' => 'Configure page titles and intro text for menu tree pages.',
+    'access arguments' => array('administer menu tree'),
+    'file' => 'menutree.admin.inc',
+  );
+  return $items;
+}
+
+/**
+ * Display a fully-expanded version of the menu specified on the path
+ *
+ * @param $menu
+ *  The menu to display.
+ */
+function menutree_display($menu) {
+  $output = '';
+  
+  $title = variable_get('menutree_title_'. $menu['menu_name'], '');
+  drupal_set_title(check_plain(!empty($title) ? $title : $menu['title']));
+  
+  // Output custom intro text.
+  $intro = variable_get('menutree_intro_text_'. $menu['menu_name'], '');
+  if (!empty($intro)) {
+    $output .= check_markup($intro, FILTER_FORMAT_DEFAULT, FALSE);
+  }
+  
+  $tree = menu_tree_output(menu_tree_all_data($menu['menu_name']));
+  $output .= theme('menutree_page', $tree);
+
+  return $output;
+}
+
+/**
+ * Theme the menutree
+ * 
+ * In practice this is already themed into lists, so this just wraps it in a div
+ *
+ * @param string $output
+ *  The menutree, pre-rendered
+ *
+ * @ingroup themeable
+ */
+function theme_menutree_page($output) {
+  return '<div class="menutree-page">'. $output ."</div>\n";
+}

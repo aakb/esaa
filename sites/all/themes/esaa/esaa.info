@@ -1,0 +1,21 @@
+name = ESAA
+description = Theme to ESAA.
+version = VERSION
+core = 6.x
+engine = phptemplate
+stylesheets[all][] = reset.css
+stylesheets[all][] = style.css
+scripts[] = js/rollover.js
+scripts[] = js/popup.js
+
+regions[top] = Top
+regions[header] = Header
+regions[content_top] = content top
+regions[content] = content
+regions[navigation] = navigation
+regions[front_top_gpx_image] = Forside Top grafik billede
+regions[top_gpx_text] = Top grafik tekst
+regions[top_gpx_image] = Top grafik billede
+regions[left] = Venstre Sidebar
+regions[right] = Hojre Sidebar
+regions[footer] = Footer
