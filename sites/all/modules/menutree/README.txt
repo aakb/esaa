@@ -5,7 +5,9 @@ Drupal menu structure. menutree/navigation provides a tree representation of
 the navigation menu, menutree/primary-links provides a tree representation
 of the primary links menu, etc. If no menu name is specified, the primary
 links menu is used. That allows it to be used as a simple menu-based
-sitemap, give or take a path alias.
+sitemap, give or take a path alias.  The path menutree/all
+provides a list of all flagged menus for sites that have multiple separate
+navigation menus.
 
 REQUIREMENTS
 

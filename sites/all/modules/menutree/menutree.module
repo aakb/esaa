@@ -1,21 +1,42 @@
 <?php
-//$Id: menutree.module,v 1.4.2.1 2008/05/04 23:25:40 crell Exp $
+//$Id: menutree.module,v 1.4.2.3 2009/05/27 19:01:00 crell Exp $
 
 /**
  * @file
  * This module provides a simple "site map" tree based on the menu system rather
  * than on taxonomies.
- * 
+ *
  * @author Larry Garfield
  *
  */
 
 /**
+ * Page title handling option constant definitions.
+ */
+
+/**
+ * Display the menu title as the page title.
+ */
+define('MENUTREE_TITLE_PAGE', 0x0001);
+
+/**
+ * Display the menu title inline in the body of the page.
+ */
+define('MENUTREE_TITLE_BODY', 0x0002);
+
+/**
  * Implementation of hook_theme()
  */
-function menutree_theme() { 
+function menutree_theme() {
   return array(
-    'menutree_page' => array('arguments' => array('output' => NULL)),
+    'menutree_page' => array(
+      'arguments' => array(
+        'title' => NULL,
+        'description' => NULL,
+        'tree' => NULL,
+      ),
+      'file' => 'menutree.pages.inc',
+      ),
     'menutree_tree' => array('arguments' => array('menu_name' => NULL)),
   );
 }
@@ -34,16 +55,26 @@ function menutree_menu() {
   $items = array();
   $items['menutree'] = array(
     'title' => 'Sitemap',
-    'page callback' => 'menutree_display',
+    'page callback' => 'menutree_display_page',
     'page arguments' => array(menu_load('primary-links')),
     'access arguments' => array('view site tree'),
     'type' => MENU_CALLBACK,
+    'file' => 'menutree.pages.inc',
   );
   $items['menutree/%menu'] = array(
     'title' => 'Sitemap',
     'page arguments' => array(1),
     'type' => MENU_CALLBACK,
     'access arguments' => array('view site tree'),
+    'file' => 'menutree.pages.inc',
+  );
+  $items['menutree/all'] = array(
+    'title' => 'Sitemap',
+    'page callback' => 'menutree_display_all',
+    'page arguments' => array(),
+    'access arguments' => array('view site tree'),
+    'type' => MENU_CALLBACK,
+    'file' => 'menutree.pages.inc',
   );
   $items['admin/build/menutree'] = array(
     'title' => 'Menu trees',
@@ -56,40 +87,3 @@ function menutree_menu() {
   return $items;
 }
 
-/**
- * Display a fully-expanded version of the menu specified on the path
- *
- * @param $menu
- *  The menu to display.
- */
-function menutree_display($menu) {
-  $output = '';
-  
-  $title = variable_get('menutree_title_'. $menu['menu_name'], '');
-  drupal_set_title(check_plain(!empty($title) ? $title : $menu['title']));
-  
-  // Output custom intro text.
-  $intro = variable_get('menutree_intro_text_'. $menu['menu_name'], '');
-  if (!empty($intro)) {
-    $output .= check_markup($intro, FILTER_FORMAT_DEFAULT, FALSE);
-  }
-  
-  $tree = menu_tree_output(menu_tree_all_data($menu['menu_name']));
-  $output .= theme('menutree_page', $tree);
-
-  return $output;
-}
-
-/**
- * Theme the menutree
- * 
- * In practice this is already themed into lists, so this just wraps it in a div
- *
- * @param string $output
- *  The menutree, pre-rendered
- *
- * @ingroup themeable
- */
-function theme_menutree_page($output) {
-  return '<div class="menutree-page">'. $output ."</div>\n";
-}

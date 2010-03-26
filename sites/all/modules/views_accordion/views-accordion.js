@@ -1,4 +1,4 @@
-// $Id: views-accordion.js,v 1.1.2.14 2009/09/24 11:22:14 manuelgarcia Exp $
+// $Id: views-accordion.js,v 1.1.2.15 2010/01/18 19:39:28 manuelgarcia Exp $
 Drupal.behaviors.views_accordion = function(context) {
 
   if(Drupal.settings.views_accordion){
@@ -46,7 +46,7 @@ Drupal.behaviors.views_accordion = function(context) {
           $(this).children().slice(1).wrapAll('<div class="' + contentClass + '">') // we wrap all but the header in a div so we can target the content later
         }).parent().addClass('accordion-active');
 
-        var $content =  usegroupheader ? $(contentSelector) : $(idSelector + ' ' + contentSelector);
+        var $content =  usegroupheader ? $(contentSelector, $viewcontent) : $(idSelector + ' ' + contentSelector);
         $content.hide();
 
         // Hide all - show all action & buttons
