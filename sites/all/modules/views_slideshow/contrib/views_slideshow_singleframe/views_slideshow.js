@@ -1,4 +1,4 @@
-// $Id: views_slideshow.js,v 1.1.2.1.2.13 2009/09/29 20:48:36 redndahead Exp $
+// $Id: views_slideshow.js,v 1.1.2.1.2.19 2010/04/06 06:04:38 redndahead Exp $
 
 /**
  *  @file
@@ -6,13 +6,14 @@
  */
 
 /**
- *  This will set our initial behavior, by starting up each individual slideshow.
+ * This will set our initial behavior, by starting up each individual slideshow.
  */
 Drupal.behaviors.viewsSlideshowSingleFrame = function (context) {
   $('.views_slideshow_singleframe_main:not(.viewsSlideshowSingleFrame-processed)', context).addClass('viewsSlideshowSingleFrame-processed').each(function() {
     var fullId = '#' + $(this).attr('id');
     var settings = Drupal.settings.viewsSlideshowSingleFrame[fullId];
     settings.targetId = '#' + $(fullId + " :first").attr('id');
+    settings.paused = false;
 
     settings.opts = {
       speed:settings.speed,
@@ -20,7 +21,7 @@ Drupal.behaviors.viewsSlideshowSingleFrame = function (context) {
       delay:parseInt(settings.delay),
       sync:settings.sync==1,
       random:settings.random==1,
-      pause:settings.pause==1,
+      pause:false,
       prev:(settings.controls > 0)?'#views_slideshow_singleframe_prev_' + settings.id:null,
       next:(settings.controls > 0)?'#views_slideshow_singleframe_next_' + settings.id:null,
       pager:(settings.pager > 0)?'#views_slideshow_singleframe_pager_' + settings.id:null,
@@ -33,12 +34,7 @@ Drupal.behaviors.viewsSlideshowSingleFrame = function (context) {
           classes += ' even';
         }
         
-        if (settings.pager_type == 1) {
-          return '<div class="' + classes + '"><a href="#"><img src="' + $(slide).find('img').attr('src') + '" /></a></div>';
-        }
-        else {
-          return '<div class="' + classes + '"><a href="#">' + (idx+1) + '</a></div>';
-        }
+        return Drupal.theme('viewsSlideshowPager' + settings.pager_type, classes, idx, slide);
       },
       after:function(curr, next, opts) {
         // Used for Image Counter.
@@ -62,10 +58,26 @@ Drupal.behaviors.viewsSlideshowSingleFrame = function (context) {
     else {
       settings.opts.fx = settings.effect;
     }
-    
-    /**
-     * Add additional settings.
-     */
+
+    // Pause on hover.
+    if (settings.pause == 1) {
+      $('#views_slideshow_singleframe_teaser_section_' + settings.id).hover(function() {
+        $(settings.targetId).cycle('pause');
+      }, function() {
+        if (settings.paused == false) {
+          $(settings.targetId).cycle('resume');
+        }
+      });
+    }
+
+    // Pause on clicking of the slide.
+    if (settings.pause_on_click == 1) {
+      $('#views_slideshow_singleframe_teaser_section_' + settings.id).click(function() { 
+        viewsSlideshowPause(settings);
+      });
+    }
+
+    // Add additional settings.
     var advanced = settings.advanced.split("\n");
     for (i=0; i<advanced.length; i++) {
       var prop = '';
@@ -82,7 +94,31 @@ Drupal.behaviors.viewsSlideshowSingleFrame = function (context) {
           value += ":" + property[j];
         }
       }
-      settings.opts[prop] = value;
+      
+      // Need to evaluate so true and false isn't a string.
+      if (value == 'true' || value == 'false') {
+        value = eval(value);
+      }
+      
+      // Parse strings into functions.
+      var func = value.match(/function\s*\((.*?)\)\s*\{(.*)\}/i);
+      if (func) {
+        value = new Function(func[1].match(/(\w+)/g), func[2]);
+      }
+
+      // Call both functions if prop was set previously.
+      if (typeof(value) == "function" && prop in settings.opts) {
+        var callboth = function(before_func, new_func) {
+          return function() {
+            before_func.apply(null, arguments);
+            new_func.apply(null, arguments);
+          };
+        };
+        settings.opts[prop] = callboth(settings.opts[prop], value);
+      }
+      else {
+        settings.opts[prop] = value;
+      }
     }
     
     $(settings.targetId).cycle(settings.opts);
@@ -96,17 +132,49 @@ Drupal.behaviors.viewsSlideshowSingleFrame = function (context) {
       
       $('#views_slideshow_singleframe_playpause_' + settings.id).click(function(e) {
       	if (settings.paused) {
-      	  $(settings.targetId).cycle('resume');
-      	  $('#views_slideshow_singleframe_playpause_' + settings.id).addClass('views_slideshow_singleframe_pause').removeClass('views_slideshow_singleframe_play').text('Pause');
-      	  settings.paused = false;
+      	  viewsSlideshowSingleFrameResume(settings);
       	}
       	else {
-      	  $(settings.targetId).cycle('pause');
-      	  $('#views_slideshow_singleframe_playpause_' + settings.id).addClass('views_slideshow_singleframe_play').removeClass('views_slideshow_singleframe_pause').text('Resume');
-      	  settings.paused = true;
+      	  viewsSlideshowSingleFramePause(settings);
       	}
         e.preventDefault();
       });
     }
   });
+}
+
+// Pause the slideshow 
+viewsSlideshowSingleFramePause = function (settings) {
+  $(settings.targetId).cycle('pause');
+  if (settings.controls > 0) {
+    $('#views_slideshow_singleframe_playpause_' + settings.id)
+      .addClass('views_slideshow_singleframe_play')
+      .addClass('views_slideshow_play')
+      .removeClass('views_slideshow_singleframe_pause')
+      .removeClass('views_slideshow_pause')
+      .text('Resume');
+  }
+  settings.paused = true;
+}
+
+// Resume the slideshow
+viewsSlideshowSingleFrameResume = function (settings) {
+  $(settings.targetId).cycle('resume');
+  if (settings.controls > 0) {
+    $('#views_slideshow_singleframe_playpause_' + settings.id)
+      .addClass('views_slideshow_singleframe_pause')
+      .addClass('views_slideshow_pause')
+      .removeClass('views_slideshow_singleframe_play')
+      .removeClass('views_slideshow_play')
+      .text('Pause');
+  }
+  settings.paused = false;
+}
+
+Drupal.theme.prototype.viewsSlideshowPagerThumbnails = function (classes, idx, slide) {
+  return '<div class="' + classes + '"><a href="#"><img src="' + $(slide).find('img').attr('src') + '" /></a></div>';
+}
+
+Drupal.theme.prototype.viewsSlideshowPagerNumbered = function (classes, idx, slide) {
+  return '<div class="' + classes + '"><a href="#">' + (idx+1) + '</a></div>';
 }
