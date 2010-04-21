@@ -1,5 +1,5 @@
 <?php
-// $Id: views_slideshow_thumbnailhover.theme.inc,v 1.1.2.1.2.23 2010/04/13 06:38:49 redndahead Exp $
+// $Id: views_slideshow_thumbnailhover.theme.inc,v 1.1.2.1.2.29 2010/04/17 04:36:24 redndahead Exp $
 
 /**
  * @file
@@ -56,10 +56,10 @@ function template_preprocess_views_slideshow_thumbnailhover(&$vars) {
   }
 
   if (!$thumbnailhover['teasers_last']) {
-    $vars['teasers_top'] = theme('views_slideshow_thumbnailhover_breakout_teasers', $view, $rows, $id, $options);
+    $vars['breakout_top'] = theme('views_slideshow_thumbnailhover_breakout_teasers', $view, $rows, $id, $options);
   }
   else {
-    $vars['teasers_bottom'] = theme('views_slideshow_thumbnailhover_breakout_teasers', $view, $rows, $id, $options);
+    $vars['breakout_bottom'] = theme('views_slideshow_thumbnailhover_breakout_teasers', $view, $rows, $id, $options);
   }
 
   if ($thumbnailhover['image_count'] == 1) {
@@ -86,11 +86,25 @@ function theme_views_slideshow_thumbnailhover_no_display_section($view, $rows, $
     if ($view->display_handler->uses_fields()) {
       $rendered = '';
       foreach ($options['views_slideshow_thumbnailhover']['main_fields'] as $field => $use) {
-        $rendered_field = $view->field[$field]->theme($node);
-        if (($use !== 0) && !empty($rendered_field)) {
-          $rendered .= '<div class="views-field-'. views_css_safe($view->field[$field]->field) .'">';
-          $rendered .=  $rendered_field;
-          $rendered .= '</div>';
+        if (is_object($view->field[$field])) {
+          $rendered_field = $view->field[$field]->theme($node);
+          
+          // If the field is excluded then don't display it.
+          // It must be rendered first though so that Custom Text can use it.
+          if (!$view->field[$field]->options['exclude']) {
+            if (($use !== 0) && !empty($rendered_field)) {
+              $rendered .= '<div class="views-field-'. views_css_safe($view->field[$field]->field) .'">';
+              if ($view->field[$field]->label()) {
+                $rendered .= '<label class="view-label-'. views_css_safe($view->field[$field]->field) . '">';
+                $rendered .= $view->field[$field]->label() . ':';
+                $rendered .= '</label>';
+              }
+              $rendered .= '<div class="views-content-'. views_css_safe($view->field[$field]->field) .'">';
+              $rendered .=  $rendered_field;
+              $rendered .= '</div>';
+              $rendered .= '</div>';
+            }
+          }
         }
       }
     }
@@ -141,7 +155,6 @@ function theme_views_slideshow_thumbnailhover_breakout_teasers($view, $items, $i
   $output = "<div$attributes>";
   if ('title' == $options['views_slideshow_thumbnailhover']['hover_breakout']) {
     foreach ($view->result as $count => $node) {
-      dsm($node);
       $node = node_load($node->nid); // TODO, this loads too much, but on node row we dont access the fields separately.
       $output .= theme('views_slideshow_thumbnailhover_breakout_teaser', $node->title, $id, $count);
     }
@@ -150,11 +163,25 @@ function theme_views_slideshow_thumbnailhover_breakout_teasers($view, $items, $i
     foreach ($view->result as $count => $node) {
       $rendered_fields = '';
       foreach ($options['views_slideshow_thumbnailhover']['breakout_fields'] as $field => $use) {
-        $rendered_field = $view->field[$field]->theme($node);
-        if (($use !== 0) && !empty($rendered_field)) {
-          $rendered_fields .= '<div class="views-field-'. views_css_safe($view->field[$field]->field) .'">';
-          $rendered_fields .=  $rendered_field;
-          $rendered_fields .= '</div>';
+        if (is_object($view->field[$field])) {
+          $rendered_field = $view->field[$field]->theme($node);
+          
+          // If the field is excluded then don't display it.
+          // It must be rendered first though so that Custom Text can use it.
+          if (!$view->field[$field]->options['exclude']) {
+            if (($use !== 0) && !empty($rendered_field)) {
+              $rendered_fields .= '<div class="views-field-'. views_css_safe($view->field[$field]->field) .'">';
+              if ($view->field[$field]->label()) {
+                $rendered_fields .= '<label class="view-label-'. views_css_safe($view->field[$field]->field) . '">';
+                $rendered_fields .= $view->field[$field]->label() . ':';
+                $rendered_fields .= '</label>';
+              }
+              $rendered_fields .= '<div class="views-content-'. views_css_safe($view->field[$field]->field) .'">';
+              $rendered_fields .=  $rendered_field;
+              $rendered_fields .= '</div>';
+              $rendered_fields .= '</div>';
+            }
+          }
         }
       }
       $output .= theme('views_slideshow_thumbnailhover_breakout_teaser', $rendered_fields, $id, $count);
@@ -264,7 +291,7 @@ function theme_views_slideshow_thumbnailhover_image_count($id, $view, $options) 
   $attributes['id'] = "views_slideshow_thumbnailhover_image_count_$id";
   $attributes = drupal_attributes($attributes);
 
-  $counter = '<span class="num"></span> ' . t('of') .' <span class="total"></span>';
+  $counter = '<span class="num">1</span> ' . t('of') .' <span class="total">1</span>';
 
   return "<div$attributes>$counter</div>";
 }

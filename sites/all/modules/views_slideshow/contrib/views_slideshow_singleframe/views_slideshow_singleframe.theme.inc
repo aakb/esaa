@@ -1,5 +1,5 @@
 <?php
-// $Id: views_slideshow_singleframe.theme.inc,v 1.1.2.1.2.21 2010/04/13 06:21:51 redndahead Exp $
+// $Id: views_slideshow_singleframe.theme.inc,v 1.1.2.1.2.22 2010/04/15 03:16:46 redndahead Exp $
 
 /**
  * @file
@@ -183,7 +183,7 @@ function theme_views_slideshow_singleframe_image_count($id, $view, $options) {
   $attributes['id'] = "views_slideshow_singleframe_image_count_$id";
   $attributes = drupal_attributes($attributes);
 
-  $counter = '<span class="num"></span> ' . t('of') . ' <span class="total"></span>';
+  $counter = '<span class="num">1</span> ' . t('of') . ' <span class="total">1</span>';
 
   return "<div$attributes>$counter</div>";
 }

@@ -1,4 +1,4 @@
-// $Id: views_slideshow.js,v 1.1.2.2.2.18 2010/04/06 06:04:38 redndahead Exp $
+// $Id: views_slideshow.js,v 1.1.2.2.2.26 2010/04/19 22:44:33 redndahead Exp $
 
 /**
  * @file
@@ -22,7 +22,9 @@ Drupal.behaviors.viewsSlideshowThumbnailHover = function (context) {
       sync:settings.sync==1,
       random:settings.random==1,
       pause:false,
+      allowPagerClickBubble:(settings.pager_event=='click')? false : true,
       pager:(settings.pager_event == 'hoverIntent') ? null : '#views_slideshow_breakout_teasers_' + settings.id,
+      nowrap:parseInt(settings.nowrap),
       pagerAnchorBuilder:(settings.pager_event == 'hoverIntent') ? null : function(idx, slide) { 
         return '#views_slideshow_thumbnailhover_div_breakout_teaser_' + settings.id + '_' + idx; 
       },
@@ -34,6 +36,13 @@ Drupal.behaviors.viewsSlideshowThumbnailHover = function (context) {
         }
       },
       before:function(current, next) {
+        if (settings.fixed_height == 0) {
+          //get the height of the current slide
+          var $ht = $(this).height();
+          //set the container's height to that of the current slide
+          $(this).parent().animate({height: $ht});
+        }
+        
         var currId = (currId=$(current).attr('id')).substring(currId.lastIndexOf('_')+1)
         var nextId = (nextId=$(next).attr('id')).substring(nextId.lastIndexOf('_')+1)
         $('#views_slideshow_thumbnailhover_div_breakout_teaser_' + settings.id + '_' + currId).removeClass('activeSlide');
@@ -42,8 +51,8 @@ Drupal.behaviors.viewsSlideshowThumbnailHover = function (context) {
       pagerEvent: (settings.pager_event == 'hoverIntent') ? null : settings.pager_event,
       prev:(settings.controls > 0)?'#views_slideshow_thumbnailhover_prev_' + settings.id:null,
       next:(settings.controls > 0)?'#views_slideshow_thumbnailhover_next_' + settings.id:null,
-      cleartype:(settings.ie.cleartype),
-      cleartypeNoBg:(settings.ie.cleartypenobg)
+      cleartype:(settings.ie.cleartype == 'true')? true : false,
+      cleartypeNoBg:(settings.ie.cleartypenobg == 'true')? true : false
     };
     
     if (settings.effect == 'none') {
@@ -55,7 +64,7 @@ Drupal.behaviors.viewsSlideshowThumbnailHover = function (context) {
 		
 		// Pause on hover.
     if (settings.pause == 1) {
-      $('#views_slideshow_singleframe_teaser_section_' + settings.id).hover(function() {
+      $('#views_slideshow_thumbnailhover_teaser_section_' + settings.id).hover(function() {
         $(settings.targetId).cycle('pause');
       }, function() {
         if (settings.paused == false) {
@@ -66,52 +75,55 @@ Drupal.behaviors.viewsSlideshowThumbnailHover = function (context) {
 
     // Pause on clicking of the slide.
     if (settings.pause_on_click == 1) {
-      $('#views_slideshow_singleframe_teaser_section_' + settings.id).click(function() { 
+      $('#views_slideshow_thumbnailhover_teaser_section_' + settings.id).click(function() { 
         viewsSlideshowPause(settings);
       });
     }
     
     // Add additional settings.
-    var advanced = settings.advanced.split("\n");
-    for (i=0; i<advanced.length; i++) {
-      var prop = '';
-      var value = '';
-      var property = advanced[i].split(":");
-      for (j=0; j<property.length; j++) {
-        if (j == 0) {
-          prop = property[j];
+		if (settings.advanced != "\n") {
+      var advanced = settings.advanced.split("\n");
+      for (i=0; i<advanced.length; i++) {
+        var prop = '';
+        var value = '';
+        var property = advanced[i].split(":");
+        for (j=0; j<property.length; j++) {
+          if (j == 0) {
+            prop = property[j];
+          }
+          else if (j == 1) {
+            value = property[j];
+          }
+          else {
+            value += ":" + property[j];
+          }
         }
-        else if (j == 1) {
-          value = property[j];
+
+        // Need to evaluate so true, false and numerics aren't a string.
+        if (value == 'true' || value == 'false' || IsNumeric(value)) {
+          value = eval(value);
         }
         else {
-          value += ":" + property[j];
+          // Parse strings into functions.
+          var func = value.match(/function\s*\((.*?)\)\s*\{(.*)\}/i);
+          if (func) {
+            value = new Function(func[1].match(/(\w+)/g), func[2]);
+          }
         }
-      }
-      
-      // Need to evaluate so true and false isn't a string.
-      if (value == 'true' || value == 'false') {
-        value = eval(value);
-      }
-      
-      // Parse strings into functions.
-      var func = value.match(/function\s*\((.*?)\)\s*\{(.*)\}/i);
-      if (func) {
-        value = new Function(func[1].match(/(\w+)/g), func[2]);
-      }
-
-      // Call both functions if prop was set previously.
-      if (typeof(value) == "function" && prop in settings.opts) {
-        var callboth = function(before_func, new_func) {
-          return function() {
-            before_func.apply(null, arguments);
-            new_func.apply(null, arguments);
+	
+        // Call both functions if prop was set previously.
+        if (typeof(value) == "function" && prop in settings.opts) {
+          var callboth = function(before_func, new_func) {
+            return function() {
+              before_func.apply(null, arguments);
+              new_func.apply(null, arguments);
+            };
           };
-        };
-        settings.opts[prop] = callboth(settings.opts[prop], value);
-      }
-      else {
-        settings.opts[prop] = value;
+          settings.opts[prop] = callboth(settings.opts[prop], value);
+        }
+        else {
+          settings.opts[prop] = value;
+        }
       }
     }
 
@@ -183,4 +195,19 @@ viewsSlideshowThumbnailHoverResume = function (settings) {
       .text('Pause');
   }
   settings.paused = false;
+}
+
+// Verify that the value is a number.
+function IsNumeric(sText) {
+  var ValidChars = "0123456789";
+  var IsNumber=true;
+  var Char;
+
+  for (i=0; i < sText.length && IsNumber == true; i++) { 
+    Char = sText.charAt(i); 
+    if (ValidChars.indexOf(Char) == -1) {
+      IsNumber = false;
+    }
+  }
+  return IsNumber;
 }
