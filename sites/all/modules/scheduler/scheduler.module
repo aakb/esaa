@@ -1,5 +1,5 @@
 <?php
-// $Id: scheduler.module,v 1.50.2.31 2009/10/16 17:10:11 ericschaefer Exp $
+// $Id: scheduler.module,v 1.50.2.36 2010/05/02 16:36:06 ericschaefer Exp $
 
 define('SCHEDULER_DATE_FORMAT', 'Y-m-d H:i:s');
 
@@ -61,7 +61,7 @@ function scheduler_admin() {
     '#default_value' => variable_get('scheduler_date_format', SCHEDULER_DATE_FORMAT),
     '#size' => 20,
     '#maxlength' => 20,
-    '#description' => t('The input format for the (un)scheduling time/date. See the date() function for formatting options: http://www.php.net/manual/en/function.date.php (only the following format characters are supported (don\'t use \'G\' with Date Popup): djmnyYhHgGisaA)'),
+    '#description' => t('The input format for the (un)scheduling time/date. See the date() function for formatting options: http://www.php.net/manual/en/function.date.php (only the following format characters are supported (don\'t use \'G\', \'a\' or \'A\' with Date Popup): djmnyYhHgGisaA)'),
   );
   return system_settings_form($form);
 }
@@ -99,7 +99,7 @@ function scheduler_form_alter(&$form, $form_state, $form_id) {
         $internal_date_format = module_exists('date_popup') ? SCHEDULER_DATE_FORMAT : $date_format;
 
         // if this is a preview then get the values from the form, not the db
-        if ($form_state['values']['op']=='Preview') {
+        if (isset($form_state['values']['op']) && $form_state['values']['op'] == 'Preview') {
           $defaults = new StdClass;
           $defaults->publish_on = $form_state['values']['publish_on'];
           $defaults->unpublish_on = $form_state['values']['unpublish_on'];
@@ -127,7 +127,13 @@ function scheduler_form_alter(&$form, $form_state, $form_id) {
           '#title' => t('Scheduling options'),
           '#collapsible' => TRUE,
           '#collapsed' => ((isset($defaults->publish_on) && $defaults->publish_on != 0) || (isset($defaults->unpublish_on) && $defaults->unpublish_on != 0)) ? FALSE: TRUE,
-          '#weight' => 35
+          '#weight' => 35,
+          '#group' => 'additional_settings',
+          '#attached' => array(
+            'js' => array(
+              'vertical-tabs' => drupal_get_path('module', 'scheduler') . "/scheduler_vertical_tabs.js"
+            ),
+          )
         );
 
         $form['scheduler_settings']['publish_on'] = array(
@@ -188,7 +194,7 @@ function scheduler_list() {
 
   while ($node = db_fetch_object($result)) {
     $rows[] = array(
-      ($node->status ? l($node->title, "node/$node->nid") : $node->title),
+      l($node->title, "node/$node->nid"),
       theme('username', $node),
       ($node->publish_on ? format_date($node->publish_on) : '&nbsp;'),
       ($node->unpublish_on ? format_date($node->unpublish_on) : '&nbsp;'),
@@ -217,10 +223,10 @@ function scheduler_list() {
  */
 function _scheduler_strtotime($str) {
   if ($str && trim($str) != "" ) {
-  	$date_format = variable_get('scheduler_date_format', SCHEDULER_DATE_FORMAT);
-  	if (module_exists('date_popup')) {
-  		$date_format = SCHEDULER_DATE_FORMAT;
-  	}
+    $date_format = variable_get('scheduler_date_format', SCHEDULER_DATE_FORMAT);
+    if (module_exists('date_popup')) {
+      $date_format = SCHEDULER_DATE_FORMAT;
+    }
     $time=_scheduler_strptime(trim($str), $date_format);
     if ($time!==FALSE) {
       // success
@@ -567,11 +573,14 @@ function scheduler_views_api() {
  * Implementation of hook_content_extra_fields().
  */
 function scheduler_content_extra_fields($type_name) {
-  $fields['scheduler_settings'] = array(
-    'label' => t('Scheduler'),
-    'description' => t('Scheduler module form.'),
-    'weight' => 10,
-  );
+  $fields = array();
+  if (variable_get('scheduler_'. $type_name, 0) == 1) {
+    $fields['scheduler_settings'] = array(
+      'label' => t('Scheduler'),
+      'description' => t('Scheduler module form.'),
+      'weight' => 10,
+    );
+  }
 
   return $fields;
 }
