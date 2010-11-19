@@ -1,5 +1,5 @@
 <?php
-// $Id: views_accordion_style_plugin.inc,v 1.1.2.14 2009/11/03 18:52:03 manuelgarcia Exp $
+// $Id: views_accordion_style_plugin.inc,v 1.1.2.15 2010/04/22 10:36:23 manuelgarcia Exp $
 /**
  * @file
  * Provide an accordion style plugin for Views. This file is autoloaded by views.
@@ -24,6 +24,7 @@ class views_accordion_style_plugin extends views_plugin_style {
     $options['include-style'] = array('default' => 1);
     $options['auto-cycle'] = array('default' => 0);
     $options['auto-cycle-speed'] = array('default' => 5);
+    $options['header-is-link'] = array('default' => 0);
     return $options;
   }
 
@@ -122,6 +123,12 @@ class views_accordion_style_plugin extends views_plugin_style {
       '#process' => array('views_process_dependency'),
       '#dependency' => array('edit-style-options-auto-cycle' => array(TRUE)),
     );
+    $form['header-is-link'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Allow links in header to be clickable'),
+      '#default_value' => $this->options['header-is-link'],
+      '#description' => t('Whether or not clicking on a item in the header will follow a link or only open the accordion.'),
+    );
   }
 
   /**
@@ -145,6 +152,8 @@ class views_accordion_style_plugin extends views_plugin_style {
     $view_settings['autocyclespeed'] = check_plain($this->options['auto-cycle-speed']) * 1000;
     $view_settings['display'] =  'views-accordion-'. $this->view->name .'-'. $this->view->current_display;
     $view_settings['usegroupheader'] = $view_settings['grouping'] ? $this->options['use-grouping-header'] : 0;
+    $view_settings['enableheaderlinks'] =  $this->options['header-is-link'] ? 1 : 0;
+
     $view_id = 'views-accordion-'. $this->view->name .'-'. $this->view->current_display;
 
     if ($view_settings['usegroupheader'] == 1) {

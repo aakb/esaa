@@ -1,4 +1,4 @@
-// $Id: views-accordion.js,v 1.1.2.15 2010/01/18 19:39:28 manuelgarcia Exp $
+// $Id: views-accordion.js,v 1.1.2.16 2010/04/22 10:36:23 manuelgarcia Exp $
 Drupal.behaviors.views_accordion = function(context) {
 
   if(Drupal.settings.views_accordion){
@@ -19,6 +19,7 @@ Drupal.behaviors.views_accordion = function(context) {
       var togglelinks = this.togglelinks;  // wether or not to show Open All / Close All links
       var disablecloseothers = this.disablecloseothers;  // wether or not when clicking a closed item we should close all others.
       var rowstartopen = this.rowstartopen; // The row that we have to open on load, if any.
+      var enableheaderlinks = this.enableheaderlinks; // Allow links placed in the header to be clickable or not.
 
       // the selectors we have to play with
       var contentSelector = 'div.' + contentClass; // used for selecting all accordion content to show/hide
@@ -100,7 +101,10 @@ Drupal.behaviors.views_accordion = function(context) {
               $ourTrigger.addClass(activeClass);
             }
           }
-          return false;
+          //disable link in header elements if needed
+          if (!enableheaderlinks) {
+            return false;
+          }
         });
 
         $triggers.hover(function(){
