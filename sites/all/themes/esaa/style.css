@@ -693,6 +693,10 @@ p {
 
 /* EIAA */
 
+#eiaa #top_gpx_image .block {
+  margin: 19px 5px;
+}
+
 #eiaa #top_gpx_text {
 	background: url(images/top-gpx-text-eiaa.png) no-repeat right top;
 }
