@@ -363,10 +363,7 @@ function imceimage_field_formatter($field, $item, $formatter, $node) {
   // $file_directory can be different for public / private download
   $file_directory = variable_get('file_downloads', '') == FILE_DOWNLOADS_PRIVATE ? 'system/files' : file_directory_path();
 
-  $filename = basename($item['imceimage_path']);
-  $subdir =  str_replace("/". $file_directory ."/", '', str_replace( '/'. $filename, '', $path_parts['path'])); 
-
-  $orig_filepath = $subdir .'/'. $filename;
+  $orig_filepath = $file_directory .'/'. basename($item['imceimage_path']);
   $imagecache_url = imagecache_create_url($presetname, $orig_filepath); //"subdir/subdir2/imageabc.jpg"
 
   $full_img_url = file_create_url($orig_filepath);
