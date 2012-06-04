@@ -1,4 +1,3 @@
-; $Id: pngbehave.info,v 1.1.2.1 2008/12/07 11:36:27 mrjeeves Exp $
 name = PNG Behave
 description = "Uses CSS Class Selectors to fix PNG Alpha Transparency through Windows IE 5.5+ behaviors."
 core = 6.x
@@ -11,9 +10,9 @@ project = "pngbehave"
 datestamp = "1225022961"
 
 
-; Information added by drupal.org packaging script on 2008-12-15
-version = "6.x-1.7"
+; Information added by drupal.org packaging script on 2011-05-24
+version = "6.x-1.8"
 core = "6.x"
 project = "pngbehave"
-datestamp = "1229320525"
+datestamp = "1306231016"
 
