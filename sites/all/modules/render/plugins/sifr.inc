@@ -1,5 +1,4 @@
 <?php
-// $Id: sifr.inc,v 1.6 2009/01/17 20:13:55 sun Exp $
 
 /**
  * @file

@@ -1,4 +1,3 @@
-/* $Id: sifr-README.txt,v 1.7 2008/10/01 11:26:10 sun Exp $ */
 
 -- INSTALLATION --
 

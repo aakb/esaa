@@ -1,5 +1,4 @@
 <?php
-// $Id: render.install,v 1.7 2008/09/09 11:13:26 sun Exp $
 
 /**
  * Implementation of hook_schema().
