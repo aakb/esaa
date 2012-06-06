@@ -1,4 +1,5 @@
 <?php
+// $Id: pngbehave.admin.inc,v 1.1.2.1 2008/12/07 11:36:27 mrjeeves Exp $
 
 /**
  * @file

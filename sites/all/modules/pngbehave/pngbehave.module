@@ -1,4 +1,5 @@
 <?php
+// $Id: pngbehave.module,v 1.2.2.2 2008/12/15 05:50:31 mrjeeves Exp $
 
 /**
 * Implementation of hook_help
