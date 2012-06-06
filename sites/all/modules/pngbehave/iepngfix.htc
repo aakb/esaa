@@ -13,7 +13,7 @@ IEPNGFix.data = IEPNGFix.data || {};
 
 // This must be a path to a blank image, relative to the HTML document(s).
 // Chris Paul (mrjeeves): set this to use drupal's base path and default path to module
-IEPNGFix.blankImg = BlankImgPath + '/blank.gif';
+IEPNGFix.blankImg = (window.BlankImgPath || '/sites/all/modules/pngbehave') + '/blank.gif';
 
 
 IEPNGFix.fix = function(elm, src, t) {
