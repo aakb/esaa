@@ -798,14 +798,14 @@ iframe #header {
 background:transparent url(images/top-grunge.png) no-repeat scroll left top;
 height:91px;
 position:relative;
-width:600px;
+width:300px;
 z-index:100;
 }
 
 iframe #wrapper {
 margin:auto;
 position:relative;
-width:600px;
+width:300px;
 }
 
 /*
@@ -930,4 +930,22 @@ margin:0;
 
 .sIFR-flash {
   height: 80px;
+}
+
+/**
+ * HACK HACK HACK
+ */
+.view-id-Popups h2 {
+  display: none;
+}
+.lightbox2-alt-layout-data #bottomNavClose, .lightbox2-alt-layout #bottomNavClose, 
+.lightbox2-alt-layout #imageData #bottomNav, .lightbox2-alt-layout-data #bottomNav {
+ margin: 0;
+ padding: 0;
+}
+#imageData #bottomNav {
+    height: 0;
+}
+body.popup {
+  overflow: hidden;
 }
