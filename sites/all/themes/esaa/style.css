@@ -817,6 +817,18 @@ width:300px;
 }
 
 /*
+* Social share links
+*/
+.service-links {
+    float: right;
+}
+
+#main-content .node .service-links ul li {
+    background: none;
+    padding: 0;
+}
+
+/*
 * More Links
 */
 
